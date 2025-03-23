@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id
+  email          String    @unique
+  hashedPassword String    @map("hashed_password")
+  fullName       String?   @map("full_name")
+  isAdmin        Boolean   @default(false) @map("is_admin")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at")
+  sessions       Session[]
+  carts          Cart[]
+  orders         Order[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Product {
+  id          String             @id @default(uuid())
+  name        String
+  description String
+  price       Int
+  stock       Int                @default(0)
+  imageUrl    String?            @map("image_url")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @default(now()) @updatedAt @map("updated_at")
+
+  // Direct category relation for easy assignment
+  categoryId  String?   
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+
+  @@map("products")
+}
+
+
+model Category {
+  id          String            @id @default(uuid())
+  name        String
+  description String?
+  imageUrl    String?           @map("image_url")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @default(now()) @updatedAt @map("updated_at")
+
+  // ✅ Direct relation with Product (One-to-Many)
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @map("user_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @default(now()) @updatedAt @map("updated_at")
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String   @map("cart_id")
+  productId String   @map("product_id")
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("cart_items")
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  userId          String      @map("user_id")
+  status          String      @default("pending")
+  totalAmount     Int         @map("total_amount")
+  discountAmount  Int         @default(0) @map("discount_amount")
+  couponId        String?     @map("coupon_id")
+  paymentMethod   String      @map("payment_method")
+  paymentStatus   String      @default("pending") @map("payment_status")
+  shippingAddress String      @map("shipping_address")
+  shippingCity    String      @map("shipping_city")
+  shippingState   String      @map("shipping_state")
+  shippingPincode String      @map("shipping_pincode")
+  shippingPhone   String      @map("shipping_phone")
+  orderNotes      String?     @map("order_notes")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @default(now()) @updatedAt @map("updated_at")
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items           OrderItem[]
+  coupon          Coupon?     @relation(fields: [couponId], references: [id])
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String   @map("order_id")
+  productId   String?  @map("product_id")
+  productName String   @map("product_name")
+  quantity    Int
+  price       Int
+  createdAt   DateTime @default(now()) @map("created_at")
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Coupon {
+  id                 String    @id @default(uuid())
+  code               String    @unique
+  discountPercentage Int       @map("discount_percentage")
+  active             Boolean   @default(true)
+  expiresAt          DateTime? @map("expires_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  orders             Order[]
+
+  @@map("coupons")
+}
+
+model ContactSubmission {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    String   @default("new")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("contact_submissions")
+}
+
+model Subscriber {
+  id                   String   @id @default(uuid())
+  email                String   @unique
+  receiveNotifications Boolean  @default(true) @map("receive_notifications")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  @@map("subscribers")
+}
+
