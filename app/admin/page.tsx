@@ -18,6 +18,7 @@ import {
   PlusCircle,
   Eye,
   EyeOff,
+  Pencil,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -142,14 +143,25 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("products");
-  
+
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [isAddingCoupon, setIsAddingCoupon] = useState(false);
   const [isEditingOrder, setIsEditingOrder] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isViewingOrderDetails, setIsViewingOrderDetails] = useState(false);
-  
+
+  const [isEditingProduct, setIsEditingProduct] = useState(false);
+  const [editProduct, setEditProduct] = useState({
+    id: "",
+    name: "",
+    description: "",
+    price: "",
+    stock: "",
+    imageUrl: "",
+    categoryId: "",
+  });
+
   const [newProduct, setNewProduct] = useState({
     name: "",
     description: "",
@@ -158,13 +170,13 @@ export default function AdminDashboard() {
     imageUrl: "",
     categoryId: "",
   });
-  
+
   const [newCategory, setNewCategory] = useState({
     name: "",
     description: "",
     imageUrl: "",
   });
-  
+
   const [newCoupon, setNewCoupon] = useState({
     code: "",
     discountPercentage: "",
@@ -172,7 +184,7 @@ export default function AdminDashboard() {
     usageLimit: "",
     isActive: true,
   });
-  
+
   const [orderStatus, setOrderStatus] = useState("");
 
   const { toast } = useToast();
@@ -183,7 +195,7 @@ export default function AdminDashboard() {
       toast({
         title: "Error",
         description: "You don't have access to this page",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   }, [user, router, toast]);
@@ -191,6 +203,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (activeTab === "products") {
       fetchProducts();
+      fetchCategories();
     } else if (activeTab === "categories") {
       fetchCategories();
     } else if (activeTab === "coupons") {
@@ -210,7 +223,7 @@ export default function AdminDashboard() {
       toast({
         title: "Error",
         description: "Failed to fetch products",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -227,19 +240,19 @@ export default function AdminDashboard() {
       toast({
         title: "Error",
         description: "Failed to fetch categories",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   const fetchCoupons = async () => {
     try {
       setIsLoading(true);
       const response = await fetch("/api/coupons");
       const data = await response.json();
-      const mappedCoupons = data.map(coupon => ({
+      const mappedCoupons = data.map((coupon) => ({
         ...coupon,
         isActive: coupon.active,
       }));
@@ -249,13 +262,13 @@ export default function AdminDashboard() {
       toast({
         title: "Error",
         description: "Failed to fetch coupons",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
@@ -267,10 +280,65 @@ export default function AdminDashboard() {
       toast({
         title: "Error",
         description: "Failed to fetch orders",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Add this handler function for opening the edit dialog
+  const handleEditProduct = (product) => {
+    setEditProduct({
+      id: product.id,
+      name: product.name,
+      description: product.description || "",
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      imageUrl: product.imageUrl || "",
+      categoryId: product.categoryId || "",
+    });
+    setIsEditingProduct(true);
+  };
+
+  // Add this handler function for updating the product
+  const handleUpdateProduct = async () => {
+    try {
+      const response = await fetch("/api/products", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editProduct),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update product");
+      }
+
+      const updatedProduct = await response.json();
+
+      // Update the products list with the updated product
+      setProducts(
+        products.map((product) =>
+          product.id === updatedProduct.id ? updatedProduct : product
+        )
+      );
+
+      // Close the dialog and reset the form
+      setIsEditingProduct(false);
+      setEditProduct({
+        id: "",
+        name: "",
+        description: "",
+        price: "",
+        stock: "",
+        imageUrl: "",
+        categoryId: "",
+      });
+    } catch (error) {
+      console.error("Error updating product:", error);
+      // Optionally add error handling UI here
     }
   };
 
@@ -305,14 +373,14 @@ export default function AdminDashboard() {
       });
       toast({
         title: "Success",
-        description: "Product added successfully"
+        description: "Product added successfully",
       });
     } catch (error) {
       console.error("Error adding product:", error);
       toast({
         title: "Error",
         description: "Failed to add product",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -341,18 +409,18 @@ export default function AdminDashboard() {
       });
       toast({
         title: "Success",
-        description: "Category added successfully"
+        description: "Category added successfully",
       });
     } catch (error) {
       console.error("Error adding category:", error);
       toast({
         title: "Error",
         description: "Failed to add category",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
-  
+
   const handleAddCoupon = async () => {
     try {
       const response = await fetch("/api/coupons", {
@@ -364,7 +432,9 @@ export default function AdminDashboard() {
           code: newCoupon.code,
           discountPercentage: parseFloat(newCoupon.discountPercentage),
           expiresAt: newCoupon.expiresAt || null,
-          usageLimit: newCoupon.usageLimit ? parseInt(newCoupon.usageLimit) : null,
+          usageLimit: newCoupon.usageLimit
+            ? parseInt(newCoupon.usageLimit)
+            : null,
           active: newCoupon.isActive,
         }),
       });
@@ -374,7 +444,7 @@ export default function AdminDashboard() {
       }
 
       const data = await response.json();
-      setCoupons([...coupons, {...data, isActive: data.active}]);
+      setCoupons([...coupons, { ...data, isActive: data.active }]);
       setIsAddingCoupon(false);
       setNewCoupon({
         code: "",
@@ -385,21 +455,21 @@ export default function AdminDashboard() {
       });
       toast({
         title: "Success",
-        description: "Coupon added successfully"
+        description: "Coupon added successfully",
       });
     } catch (error) {
       console.error("Error adding coupon:", error);
       toast({
         title: "Error",
         description: "Failed to add coupon",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
-  
+
   const handleUpdateOrderStatus = async () => {
     if (!selectedOrder) return;
-    
+
     try {
       const response = await fetch(`/api/orders/${selectedOrder.id}/status`, {
         method: "PUT",
@@ -422,19 +492,19 @@ export default function AdminDashboard() {
             : order
         )
       );
-      
+
       setIsEditingOrder(false);
       setSelectedOrder(null);
       toast({
         title: "Success",
-        description: "Order status updated successfully"
+        description: "Order status updated successfully",
       });
     } catch (error) {
       console.error("Error updating order status:", error);
       toast({
         title: "Error",
         description: "Failed to update order status",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -452,14 +522,14 @@ export default function AdminDashboard() {
       setProducts(products.filter((product) => product.id !== id));
       toast({
         title: "Success",
-        description: "Product deleted successfully"
+        description: "Product deleted successfully",
       });
     } catch (error) {
       console.error("Error deleting product:", error);
       toast({
         title: "Error",
         description: "Failed to delete product",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -477,18 +547,18 @@ export default function AdminDashboard() {
       setCategories(categories.filter((category) => category.id !== id));
       toast({
         title: "Success",
-        description: "Category deleted successfully"
+        description: "Category deleted successfully",
       });
     } catch (error) {
       console.error("Error deleting category:", error);
       toast({
         title: "Error",
         description: "Failed to delete category",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
-  
+
   const handleDeleteCoupon = async (id: string) => {
     try {
       const response = await fetch(`/api/coupons?id=${id}`, {
@@ -502,18 +572,18 @@ export default function AdminDashboard() {
       setCoupons(coupons.filter((coupon) => coupon.id !== id));
       toast({
         title: "Success",
-        description: "Coupon deleted successfully"
+        description: "Coupon deleted successfully",
       });
     } catch (error) {
       console.error("Error deleting coupon:", error);
       toast({
         title: "Error",
         description: "Failed to delete coupon",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
-  
+
   const handleToggleCouponStatus = async (id: string, isActive: boolean) => {
     try {
       const response = await fetch(`/api/coupons/${id}/status`, {
@@ -532,22 +602,22 @@ export default function AdminDashboard() {
 
       setCoupons(
         coupons.map((coupon) =>
-          coupon.id === id
-            ? { ...coupon, isActive: !isActive }
-            : coupon
+          coupon.id === id ? { ...coupon, isActive: !isActive } : coupon
         )
       );
-      
+
       toast({
         title: "Success",
-        description: `Coupon ${!isActive ? 'activated' : 'deactivated'} successfully`
+        description: `Coupon ${
+          !isActive ? "activated" : "deactivated"
+        } successfully`,
       });
     } catch (error) {
       console.error("Error updating coupon status:", error);
       toast({
         title: "Error",
         description: "Failed to update coupon status",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -557,16 +627,6 @@ export default function AdminDashboard() {
       <div className="flex-1 space-y-4 p-4 md:p-8">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Download
-            </Button>
-            <Button size="sm">
-              <PlusCircle className="h-4 w-4 mr-2" />
-              New
-            </Button>
-          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -626,7 +686,10 @@ export default function AdminDashboard() {
                         type="number"
                         value={newProduct.price}
                         onChange={(e) =>
-                          setNewProduct({ ...newProduct, price: e.target.value })
+                          setNewProduct({
+                            ...newProduct,
+                            price: e.target.value,
+                          })
                         }
                       />
                     </div>
@@ -637,7 +700,10 @@ export default function AdminDashboard() {
                         type="number"
                         value={newProduct.stock}
                         onChange={(e) =>
-                          setNewProduct({ ...newProduct, stock: e.target.value })
+                          setNewProduct({
+                            ...newProduct,
+                            stock: e.target.value,
+                          })
                         }
                       />
                     </div>
@@ -666,11 +732,12 @@ export default function AdminDashboard() {
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {Array.isArray(categories) && categories.map((category) => (
-                            <SelectItem key={category.id} value={category.id}>
-                              {category.name}
-                            </SelectItem>
-                          ))}
+                          {Array.isArray(categories) &&
+                            categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -681,6 +748,106 @@ export default function AdminDashboard() {
                 </DialogContent>
               </Dialog>
             </div>
+
+            {/* Edit Product Dialog */}
+            <Dialog open={isEditingProduct} onOpenChange={setIsEditingProduct}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Product</DialogTitle>
+                  <DialogDescription>Update product details</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="edit-name">Name</Label>
+                    <Input
+                      id="edit-name"
+                      value={editProduct.name}
+                      onChange={(e) =>
+                        setEditProduct({ ...editProduct, name: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-description">Description</Label>
+                    <Textarea
+                      id="edit-description"
+                      value={editProduct.description}
+                      onChange={(e) =>
+                        setEditProduct({
+                          ...editProduct,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-price">Price</Label>
+                    <Input
+                      id="edit-price"
+                      type="number"
+                      value={editProduct.price}
+                      onChange={(e) =>
+                        setEditProduct({
+                          ...editProduct,
+                          price: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-stock">Stock</Label>
+                    <Input
+                      id="edit-stock"
+                      type="number"
+                      value={editProduct.stock}
+                      onChange={(e) =>
+                        setEditProduct({
+                          ...editProduct,
+                          stock: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-imageUrl">Image URL</Label>
+                    <Input
+                      id="edit-imageUrl"
+                      value={editProduct.imageUrl}
+                      onChange={(e) =>
+                        setEditProduct({
+                          ...editProduct,
+                          imageUrl: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-category">Category</Label>
+                    <Select
+                      value={editProduct.categoryId}
+                      onValueChange={(value) =>
+                        setEditProduct({ ...editProduct, categoryId: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.isArray(categories) &&
+                          categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={handleUpdateProduct}>Update Product</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
             <div className="border rounded-lg">
               <Table>
@@ -702,7 +869,14 @@ export default function AdminDashboard() {
                       </TableCell>
                       <TableCell>₹{product.price.toFixed(2)}</TableCell>
                       <TableCell>{product.stock}</TableCell>
-                      <TableCell>
+                      <TableCell className="flex space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditProduct(product)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -910,7 +1084,12 @@ export default function AdminDashboard() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleToggleCouponStatus(coupon.id, coupon.isActive)}
+                              onClick={() =>
+                                handleToggleCouponStatus(
+                                  coupon.id,
+                                  coupon.isActive
+                                )
+                              }
                             >
                               {coupon.isActive ? (
                                 <EyeOff className="h-4 w-4" />
@@ -983,7 +1162,9 @@ export default function AdminDashboard() {
                           <TableCell>
                             {new Date(order.createdAt).toLocaleDateString()}
                           </TableCell>
-                          <TableCell>{order.user.fullName || order.user.email}</TableCell>
+                          <TableCell>
+                            {order.user.fullName || order.user.email}
+                          </TableCell>
                           <TableCell>{order.items.length}</TableCell>
                           <TableCell>₹{order.totalAmount.toFixed(2)}</TableCell>
                           <TableCell>
@@ -1000,7 +1181,8 @@ export default function AdminDashboard() {
                                   : "bg-yellow-100 text-yellow-800"
                               }`}
                             >
-                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                              {order.status.charAt(0).toUpperCase() +
+                                order.status.slice(1)}
                             </span>
                           </TableCell>
                           <TableCell className="text-right">
@@ -1064,7 +1246,10 @@ export default function AdminDashboard() {
                 className="col-span-3"
                 value={newCoupon.discountPercentage}
                 onChange={(e) =>
-                  setNewCoupon({ ...newCoupon, discountPercentage: e.target.value })
+                  setNewCoupon({
+                    ...newCoupon,
+                    discountPercentage: e.target.value,
+                  })
                 }
               />
             </div>
@@ -1123,12 +1308,18 @@ export default function AdminDashboard() {
       </Dialog>
 
       {/* Order Details Dialog */}
-      <Dialog open={isViewingOrderDetails} onOpenChange={setIsViewingOrderDetails}>
+      <Dialog
+        open={isViewingOrderDetails}
+        onOpenChange={setIsViewingOrderDetails}
+      >
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
             <DialogDescription>
-              {selectedOrder && `Order #${selectedOrder.id.slice(-5)} - ${new Date(selectedOrder.createdAt).toLocaleDateString()}`}
+              {selectedOrder &&
+                `Order #${selectedOrder.id.slice(-5)} - ${new Date(
+                  selectedOrder.createdAt
+                ).toLocaleDateString()}`}
             </DialogDescription>
           </DialogHeader>
 
@@ -1136,8 +1327,12 @@ export default function AdminDashboard() {
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-medium mb-1">Customer Information</h3>
-                  <p className="text-sm">{selectedOrder.user.fullName || 'N/A'}</p>
+                  <h3 className="text-sm font-medium mb-1">
+                    Customer Information
+                  </h3>
+                  <p className="text-sm">
+                    {selectedOrder.user.fullName || "N/A"}
+                  </p>
                   <p className="text-sm">{selectedOrder.user.email}</p>
                 </div>
                 <div>
@@ -1156,10 +1351,11 @@ export default function AdminDashboard() {
                           : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
-                      {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
+                      {selectedOrder.status.charAt(0).toUpperCase() +
+                        selectedOrder.status.slice(1)}
                     </span>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => {
                         setIsViewingOrderDetails(false);
@@ -1179,11 +1375,17 @@ export default function AdminDashboard() {
                 <h3 className="text-sm font-medium mb-1">Billing Details</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Payment Method</p>
-                    <p className="text-sm font-medium">{selectedOrder.paymentMethod}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Payment Method
+                    </p>
+                    <p className="text-sm font-medium">
+                      {selectedOrder.paymentMethod}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Payment Status</p>
+                    <p className="text-sm text-muted-foreground">
+                      Payment Status
+                    </p>
                     <p className="text-sm font-medium">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -1194,7 +1396,8 @@ export default function AdminDashboard() {
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {selectedOrder.paymentStatus.charAt(0).toUpperCase() + selectedOrder.paymentStatus.slice(1)}
+                        {selectedOrder.paymentStatus.charAt(0).toUpperCase() +
+                          selectedOrder.paymentStatus.slice(1)}
                       </span>
                     </p>
                   </div>
@@ -1207,8 +1410,13 @@ export default function AdminDashboard() {
                 <h3 className="text-sm font-medium mb-1">Shipping Address</h3>
                 <div className="space-y-1">
                   <p className="text-sm">{selectedOrder.shippingAddress}</p>
-                  <p className="text-sm">{selectedOrder.shippingCity}, {selectedOrder.shippingState} {selectedOrder.shippingPincode}</p>
-                  <p className="text-sm">Phone: {selectedOrder.shippingPhone}</p>
+                  <p className="text-sm">
+                    {selectedOrder.shippingCity}, {selectedOrder.shippingState}{" "}
+                    {selectedOrder.shippingPincode}
+                  </p>
+                  <p className="text-sm">
+                    Phone: {selectedOrder.shippingPhone}
+                  </p>
                 </div>
               </div>
 
@@ -1218,7 +1426,10 @@ export default function AdminDashboard() {
                 <h3 className="text-sm font-medium mb-2">Order Items</h3>
                 <div className="space-y-4">
                   {selectedOrder.items.map((item) => (
-                    <div key={item.id} className="flex items-start justify-between border-b pb-2">
+                    <div
+                      key={item.id}
+                      className="flex items-start justify-between border-b pb-2"
+                    >
                       <div className="flex items-start gap-2">
                         <div className="w-12 h-12 relative bg-muted rounded overflow-hidden">
                           {item.product && item.product.imageUrl && (
@@ -1231,14 +1442,16 @@ export default function AdminDashboard() {
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium">{item.productName}</p>
+                          <p className="text-sm font-medium">
+                            {item.productName}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             Qty: {item.quantity} × ₹{item.price.toFixed(2)}
                           </p>
                         </div>
                       </div>
                       <div className="text-sm font-medium">
-                      ₹{(item.price * item.quantity).toFixed(2)}
+                        ₹{(item.price * item.quantity).toFixed(2)}
                       </div>
                     </div>
                   ))}
@@ -1247,11 +1460,21 @@ export default function AdminDashboard() {
                 <div className="mt-4 space-y-1">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal</span>
-                    <span>₹{(selectedOrder.totalAmount + selectedOrder.discountAmount).toFixed(2)}</span>
+                    <span>
+                      ₹
+                      {(
+                        selectedOrder.totalAmount + selectedOrder.discountAmount
+                      ).toFixed(2)}
+                    </span>
                   </div>
                   {selectedOrder.discountAmount > 0 && (
                     <div className="flex justify-between text-sm text-green-600">
-                      <span>Discount {selectedOrder.coupon ? `(${selectedOrder.coupon.code})` : ''}</span>
+                      <span>
+                        Discount{" "}
+                        {selectedOrder.coupon
+                          ? `(${selectedOrder.coupon.code})`
+                          : ""}
+                      </span>
                       <span>-₹{selectedOrder.discountAmount.toFixed(2)}</span>
                     </div>
                   )}
@@ -1263,7 +1486,10 @@ export default function AdminDashboard() {
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsViewingOrderDetails(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsViewingOrderDetails(false)}
+                >
                   Close
                 </Button>
               </DialogFooter>
@@ -1287,10 +1513,7 @@ export default function AdminDashboard() {
               <Label htmlFor="order-status" className="text-right">
                 Status
               </Label>
-              <Select
-                value={orderStatus}
-                onValueChange={setOrderStatus}
-              >
+              <Select value={orderStatus} onValueChange={setOrderStatus}>
                 <SelectTrigger id="order-status" className="col-span-3">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
@@ -1316,4 +1539,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-

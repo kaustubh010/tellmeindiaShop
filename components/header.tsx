@@ -62,9 +62,6 @@ export default function Header() {
               <Link href="/about" className="text-lg font-medium transition-colors hover:text-green-600">
                 About
               </Link>
-              <Link href="/blog" className="text-lg font-medium transition-colors hover:text-green-600">
-                Blog
-              </Link>
               <Link href="/contact" className="text-lg font-medium transition-colors hover:text-green-600">
                 Contact
               </Link>
@@ -83,9 +80,6 @@ export default function Header() {
           </Link>
           <Link href="/about" className="text-sm font-medium transition-colors hover:text-green-600">
             About
-          </Link>
-          <Link href="/blog" className="text-sm font-medium transition-colors hover:text-green-600">
-            Blog
           </Link>
           <Link href="/contact" className="text-sm font-medium transition-colors hover:text-green-600">
             Contact

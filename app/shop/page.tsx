@@ -51,7 +51,7 @@ export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [priceRange, setPriceRange] = useState<number[]>([0, 1000]);
+  const [priceRange, setPriceRange] = useState<number[]>([0, 10000]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState("featured");
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -79,7 +79,7 @@ export default function ShopPage() {
       toast({
         title: "Error",
         description: "Failed to fetch products",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -95,7 +95,7 @@ export default function ShopPage() {
       toast({
         title: "Error",
         description: "Failed to fetch categories",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -103,43 +103,56 @@ export default function ShopPage() {
   };
 
   // Calculate filtered products
-  const filteredProducts = products.filter((product) => {
-    // Price filter
-    if (product.price < priceRange[0] || product.price > priceRange[1]) {
-      return false;
-    }
+  const filteredProducts = products
+    .filter((product) => {
+      // Price filter
+      if (product.price < priceRange[0] || product.price > priceRange[1]) {
+        return false;
+      }
 
-    // Category filter - only apply if categories are selected
-    if (selectedCategories.length > 0) {
-      // Handle case where categoryId might be null by converting to string
-      const productCategoryId = product.categoryId ? product.categoryId : "";
-      
-      // Check if the product's category is in selectedCategories
-      return selectedCategories.includes(productCategoryId);
-    }
+      // Category filter - only apply if categories are selected
+      if (selectedCategories.length > 0) {
+        // Handle case where categoryId might be null by converting to string
+        const productCategoryId = product.categoryId ? product.categoryId : "";
 
-    // If no categories selected, include all products that passed price filter
-    return true;
-  }).sort((a, b) => {
-    switch (sortOption) {
-      case "price-low-high":
-        return a.price - b.price;
-      case "price-high-low":
-        return b.price - a.price;
-      case "newest":
-        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-      default:
-        return 0;
-    }
-  });
+        // Check if the product's category is in selectedCategories
+        return selectedCategories.includes(productCategoryId);
+      }
 
-  // Debug logging for filtered products
+      // If no categories selected, include all products that passed price filter
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sortOption) {
+        case "price-low-high":
+          return a.price - b.price;
+        case "price-high-low":
+          return b.price - a.price;
+        case "newest":
+          return (
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          );
+        default:
+          return 0;
+      }
+    });
+
+  // Update selected categories when URL parameter changes
   useEffect(() => {
-    console.log("Selected categories:", selectedCategories);
-    console.log("Price range:", priceRange);
-    console.log("Total products:", products.length);
-    console.log("Filtered products:", filteredProducts.length);
-  }, [products, selectedCategories, priceRange, filteredProducts.length]);
+    if (categoryParam && categories.length > 0) {
+      const matchedCategory = categories.find(
+        (category) =>
+          category.name.toLowerCase() ===
+          decodeURIComponent(categoryParam).toLowerCase()
+      );
+
+      if (matchedCategory) {
+        setSelectedCategories([matchedCategory.id]);
+      } else {
+        setSelectedCategories([]); // Clear selection if category not found
+      }
+    }
+  }, [categoryParam, categories]); // Run when categoryParam or categories change
 
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategories((prev) =>
@@ -158,7 +171,7 @@ export default function ShopPage() {
     });
     toast({
       title: "Success",
-      description: "Added to cart"
+      description: "Added to cart",
     });
   };
 
@@ -227,12 +240,12 @@ export default function ShopPage() {
               <h3 className="text-lg font-medium">No products found</h3>
               <p className="text-gray-500 mt-1">Try adjusting your filters</p>
               {products.length > 0 && (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="mt-4"
                   onClick={() => {
                     setSelectedCategories([]);
-                    setPriceRange([0, 1000]);
+                    setPriceRange([0, 10000]);
                   }}
                 >
                   Clear all filters
@@ -262,7 +275,7 @@ export default function ShopPage() {
                         </p>
                         <div className="flex items-center justify-between mt-3">
                           <span className="font-bold">
-                          ₹{product.price.toFixed(2)}
+                            ₹{product.price.toFixed(2)}
                           </span>
                         </div>
                       </CardContent>
@@ -334,22 +347,24 @@ export default function ShopPage() {
             />
             <div className="flex items-center justify-between">
               <div className="border rounded-md px-2 py-1 w-20">
-              ₹{priceRange[0]}
+                ₹{priceRange[0]}
               </div>
               <div className="border rounded-md px-2 py-1 w-20 text-right">
-              ₹{priceRange[1]}
+                ₹{priceRange[1]}
               </div>
             </div>
           </div>
         </div>
         <Separator />
-        {(selectedCategories.length > 0 || priceRange[0] > 0 || priceRange[1] < 1000) && (
-          <Button 
-            variant="outline" 
+        {(selectedCategories.length > 0 ||
+          priceRange[0] > 0 ||
+          priceRange[1] < 10000) && (
+          <Button
+            variant="outline"
             className="w-full"
             onClick={() => {
               setSelectedCategories([]);
-              setPriceRange([0, 1000]);
+              setPriceRange([0, 10000]);
             }}
           >
             Clear all filters

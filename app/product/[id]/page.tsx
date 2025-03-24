@@ -158,7 +158,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         <div>
           {product.category && (
             <Link
-              href={`/shop?category=${product.category.id}`}
+              href={`/shop?category=${product.category.name}`}
               className="text-sm font-medium text-green-600 hover:text-green-700"
             >
               {product.category.name}
