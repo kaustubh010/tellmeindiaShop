@@ -190,39 +190,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="w-full py-12 bg-green-50">
-        <div className="container px-4 md:px-6">
-          <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-center mb-8">
-            Shop by Category
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {categories && categories.map((category) => (
-              <Link
-                key={category.name}
-                href={`/shop?category=${category.name}`}
-                className="group relative overflow-hidden rounded-lg"
-              >
-                <div className="relative aspect-square">
-                  <Image
-                    src={category.imageUrl|| "/placeholder.svg"}
-                    alt={category.name}
-                    fill
-                    className="object-cover transition-transform group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <h3 className="text-white font-bold text-xl md:text-2xl">
-                      {category.name}
-                    </h3>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Benefits */}
       <section className="w-full py-12 md:py-24">
         <div className="container px-4 md:px-6">

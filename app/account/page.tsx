@@ -316,24 +316,6 @@ export default function AccountPage() {
 
               <Separator className="my-4" />
 
-              <div className="space-y-4">
-                <h3 className="font-medium">Email Preferences</h3>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="marketing">Marketing emails</Label>
-                    <p className="text-sm text-gray-500">Receive emails about new products, offers, and promotions</p>
-                  </div>
-                  <Switch id="marketing" defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="order-updates">Order updates</Label>
-                    <p className="text-sm text-gray-500">Receive emails about your orders and shipping updates</p>
-                  </div>
-                  <Switch id="order-updates" defaultChecked />
-                </div>
-              </div>
-
               <div className="space-y-2">
                 <h3 className="text-lg font-medium">Change Password</h3>
                 <div className="space-y-4">
@@ -395,19 +377,6 @@ export default function AccountPage() {
               </div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Delete Account</CardTitle>
-              <CardDescription>Permanently delete your account and all associated data</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500 mb-4">
-                This action cannot be undone. Once you delete your account, all your data will be permanently removed.
-              </p>
-              <Button variant="destructive">Delete Account</Button>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="orders">
@@ -456,7 +425,7 @@ export default function AccountPage() {
                           >
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                           </span>
-                          <div className="mx-2 font-medium">${order.totalAmount.toFixed(2)}</div>
+                          <div className="mx-2 font-medium">₹{order.totalAmount.toFixed(2)}</div>
                           <Button 
                             size="sm"
                             variant="ghost"

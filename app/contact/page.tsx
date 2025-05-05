@@ -1,49 +1,49 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Mail, MapPin, Phone } from 'lucide-react'
+import { useState } from "react";
+import { Mail, MapPin, Phone } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/components/ui/use-toast"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function ContactPage() {
-  const { toast } = useToast()
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     subject: "general",
     message: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleRadioChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, subject: value }))
-  }
+    setFormData((prev) => ({ ...prev, subject: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     toast({
       title: "Message Sent",
       description: "Thank you for contacting us. We'll respond shortly.",
-    })
+    });
 
     setFormData({
       name: "",
@@ -51,9 +51,9 @@ export default function ContactPage() {
       phone: "",
       subject: "general",
       message: "",
-    })
-    setIsSubmitting(false)
-  }
+    });
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -67,7 +67,8 @@ export default function ContactPage() {
                 Contact Us
               </h1>
               <p className="mx-auto max-w-[700px] text-white md:text-xl">
-                We're here to help with any questions about our products or services
+                We're here to help with any questions about our products or
+                services
               </p>
             </div>
           </div>
@@ -85,13 +86,14 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-xl font-bold">Phone</h3>
                 <p className="mt-2 text-gray-500">
-                  Our customer service team is available Monday through Friday, 9am to 5pm EST.
+                  Our customer service team is available Monday through Friday,
+                  9am to 5pm EST.
                 </p>
                 <a
-                  href="tel:+18005551234"
+                  href="tel:+919119295094"
                   className="mt-4 text-green-600 hover:underline"
                 >
-                  +1 (800) 555-1234
+                  +91 9119295094
                 </a>
               </CardContent>
             </Card>
@@ -106,10 +108,10 @@ export default function ContactPage() {
                   For general inquiries, product questions, or customer support.
                 </p>
                 <a
-                  href="mailto:info@TellMeIndia.com"
+                  href="mailto:contact@tellmeindia.com"
                   className="mt-4 text-green-600 hover:underline"
                 >
-                  info@TellMeIndia.com
+                  contact@tellmeindia.com
                 </a>
               </CardContent>
             </Card>
@@ -124,9 +126,11 @@ export default function ContactPage() {
                   Visit our headquarters or send mail to:
                 </p>
                 <address className="mt-4 not-italic text-green-600">
-                  123 Wellness Way<br />
-                  Harmony Hills, CA 94123<br />
-                  United States
+                  INOX, C-409, Block C,
+                  <br />
+                  Vaishali Nagar, Jaipur, Rajasthan 302021
+                  <br />
+                  India
                 </address>
               </CardContent>
             </Card>
@@ -143,7 +147,8 @@ export default function ContactPage() {
                 Send Us a Message
               </h2>
               <p className="mx-auto mt-4 max-w-[700px] text-gray-500 md:text-lg">
-                Fill out the form below and we'll get back to you as soon as possible
+                Fill out the form below and we'll get back to you as soon as
+                possible
               </p>
             </div>
 
@@ -249,21 +254,29 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="aspect-video overflow-hidden rounded-lg">
-            {/* This would be replaced with an actual map component in a real implementation */}
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <p className="text-gray-500">Map would be displayed here</p>
-            </div>
+          <div className="aspect-video overflow-hidden rounded-lg shadow-md">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3557.718409518364!2d75.73761311068195!3d26.91243047654991!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db5f19cebd3ed%3A0xb800662237f76ca6!2sVed%20Satwa%20International%20Pvt%20Ltd!5e0!3m2!1sen!2sin!4v1746433164836!5m2!1sen!2sin"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen={true}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Vedsatwa Location"
+              className="w-full h-full min-h-[400px]"
+            ></iframe>
           </div>
 
           <div className="mt-6 text-center text-gray-500">
             <p>
-              Open Monday - Friday: 9:00 AM - 5:00 PM PST<br />
+              Open Monday - Friday: 9:00 AM - 5:00 PM PST
+              <br />
               Closed on weekends and major holidays
             </p>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }
